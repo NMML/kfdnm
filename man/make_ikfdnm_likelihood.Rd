@@ -6,7 +6,45 @@
 make_ikfdnm_likelihood(dnm_survival = ~1, dnm_recruit = ~1, dnm_det = ~1,
   kf_survival_effects = NULL, fixed_list = NULL, data, N_max)
 }
+\arguments{
+\item{dnm_survival}{A model statement for the survival parameters of the N-mixture portion of the model}
+
+\item{dnm_recruit}{A model statement for the recruitment portion of the N-mixture model}
+
+\item{dnm_det}{A model statement for the the detection portion of the N-mixture model}
+
+\item{kf_survival_effects}{A model statement describing the difference between the known-fate survival and the survival of the N-mixture described in
+\code{dnm_survival}.}
+
+\item{fixed_list}{A list object with named entries: \code{survival}, \code{recruit}, and \code{det}. Each of the entries is a vector of length
+\code{nrow(data)}.}
+
+\item{data}{A data.frame object containing the data for analysis.}
+
+\item{N_max}{An integer giving the maximum abundance of the N-mixture population.}
+}
+\value{
+A function of the vector \code{par}
+}
 \description{
-Create IKFDNM model likehood function
+This function assimilates the data and desirted model to create a likelihood function that is a function with only one argument, \code{par},
+This likelihood function can teither be optimized via \code{\link{optim}} or placed within an MCMC routine.
+}
+\details{
+The data provided in the \code{data} agument contains rows for each survey within each group. The rows must be forst ordered by group,
+then time within group. The data must contain the following \code{colnames}:
+\itemize{
+\item \code{group} A factor variable indicating the survey group.
+\item \code{num_released} The number of known-fate individuals released into the population at the time of the survey
+\item \code{num_returns} The number of known-fate individuals observed at each survey time. These are a binomial sample of the \code{num_release} of the
+previous row.
+\item \code{n} The observed abundance count at each survey time.
+}
+
+The \code{kf_survival_effects} model state provides a method for specifying the \emph{difference} in survival between the N-mixtue individuals and the
+known-fate individuals. Thus, the known-fate individual survival model is equal to \code{~survival_dnm + kf_survival_effects}.
+}
+\author{
+Devin S. Johnson
 }
 

@@ -3,10 +3,30 @@
 \alias{sim_group}
 \title{Simulate group data for analysis with known-fate dynamic N-mixture models}
 \usage{
-sim_group(num_KF, num_years, num_surveys, recruit_rate, init_rate,
-  annual_survival, annual_survival_KF, perfect_survey_rate, detection)
+sim_group(num_kf, num_years, num_surveys, recruit_rate, init_rate, survival_dnm,
+  survival_kf, perfect_survey_rate, detection)
+}
+\arguments{
+\item{num_kf}{Target numer of known-fate individuals in the group}
+
+\item{num_years}{Number of years for the study}
+
+\item{num_surveys}{Number of surveys within each year}
+
+\item{recruit_rate}{Average recruitment rate}
+
+\item{init_rate}{Initial average group size in year 1 survey 1.}
+
+\item{survival_dnm}{Survival rate for non-kf individuals.}
+
+\item{survival_kf}{Survival rate for KF individuals.}
+
+\item{perfect_survey_rate}{The probability that all non-kf individuals are observed in a survey.}
+
+\item{detection}{The detection probability for abundance surveys.}
 }
 \description{
-This function generates simulated data in the correct form for use in the kfdnm package
+This function generates simulated data for a single group in the correct form for use in the kfdnm package. In addition to the required
+elements for estimation, additional latent information is also provided. The true abundance, recruits, and survivors are retained for user reference.
 }
 
