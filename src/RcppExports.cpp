@@ -7,18 +7,18 @@
 using namespace Rcpp;
 
 // N_trans
-double N_trans(const int& j, const int& k, const double& omega, const double& gamma, const int& R);
-RcppExport SEXP kfdnm_N_trans(SEXP jSEXP, SEXP kSEXP, SEXP omegaSEXP, SEXP gammaSEXP, SEXP RSEXP) {
+arma::vec N_trans(const int& fromN, const double& omega, const double& gamma, const int& R, const int& N_max);
+RcppExport SEXP kfdnm_N_trans(SEXP fromNSEXP, SEXP omegaSEXP, SEXP gammaSEXP, SEXP RSEXP, SEXP N_maxSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< const int& >::type j(jSEXP );
-        Rcpp::traits::input_parameter< const int& >::type k(kSEXP );
+        Rcpp::traits::input_parameter< const int& >::type fromN(fromNSEXP );
         Rcpp::traits::input_parameter< const double& >::type omega(omegaSEXP );
         Rcpp::traits::input_parameter< const double& >::type gamma(gammaSEXP );
         Rcpp::traits::input_parameter< const int& >::type R(RSEXP );
-        double __result = N_trans(j, k, omega, gamma, R);
+        Rcpp::traits::input_parameter< const int& >::type N_max(N_maxSEXP );
+        arma::vec __result = N_trans(fromN, omega, gamma, R, N_max);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

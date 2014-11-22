@@ -6,14 +6,25 @@
 using namespace arma;
 
 
+//// [[Rcpp::export]]
+//double N_trans_old(const int& j, const int& k, const double& omega, const double& gamma, const int& R){
+//  double out=0;
+//  if(j < R) return out;
+//  for(int c=0; c<=std::min(j-R,k);  c++){
+//    out += exp(R::dbinom(c, j-R, omega, true) + R::dpois(k-c, gamma, true));
+//  }
+//  return out;
+//}
+
 // [[Rcpp::export]]
-double N_trans(const int& j, const int& k, const double& omega, const double& gamma, const int& R){
-  double out=0;
-  if(j < R) return out;
-  for(int c=0; c<=std::min(j-R,k);  c++){
-    out += exp(R::dbinom(c, j-R, omega, true) + R::dpois(k-c, gamma, true));
-  }
-  return out;
+arma::vec N_trans(const int& fromN, const double& omega, const double& gamma, 
+const int& R, const int& N_max){
+  Rcpp::IntegerVector N(N_max+1);
+  for(int i=0; i<=N_max; i++){N(i)=i;}
+  arma::vec a(Rcpp::dbinom(N, fromN-R, omega, 0));
+  arma::vec b(Rcpp::dpois(N, gamma, 0));
+  arma::vec c = conv(a,b);
+  return(c.subvec(0,N_max));
 }
 
 
@@ -21,9 +32,7 @@ double N_trans(const int& j, const int& k, const double& omega, const double& ga
 arma::mat N_trans_mat(const double& omega, const double& gamma, const int& R, const int& N_max) {
   arma::mat out(N_max+1, N_max+1, fill::zeros);
   for(int j=R; j<=N_max; j++){
-    for(int k=0; k<=N_max; k++){
-      out(j,k) = N_trans(j,k,omega,gamma,R);
-    }
+      out.row(j) = N_trans(j,omega,gamma,R,N_max).t();
   }
   return out;
 }

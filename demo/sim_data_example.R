@@ -6,7 +6,8 @@ require(kfdnm)
 
 set.seed(111)
 data=NULL
-for(i in 1:3){
+num_groups=3
+for(i in 1:num_groups){
   data = rbind(data,
               sim_group(
                 num_kf = 3, 
@@ -21,7 +22,7 @@ for(i in 1:3){
               )
   )
 }
-data$group = rep(1:3, each=5*10)
+data$group = rep(1:num_groups, each=5*10)
 
 ###
 ### Create list of fixed parameters
