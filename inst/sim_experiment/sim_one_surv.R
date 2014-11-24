@@ -1,10 +1,10 @@
-#require(kfdnm)
+require(kfdnm)
 
 ###
 ### Simulation parameters
 ###
-reps = 20
-num_groups=3
+reps = 10
+num_groups=20
 num_kf = 3
 num_years = 5 
 num_surveys = 10
@@ -17,8 +17,8 @@ detection = 0.5
 
 set.seed(111)
 
-par_store=matrix(NA, nrow=reps, 4)
-se_store=matrix(NA, nrow=reps, 4)
+par_store=matrix(NA, nrow=reps, 3)
+se_store=matrix(NA, nrow=reps, 3)
 
 ###
 ### Begin simulation
@@ -45,18 +45,19 @@ for(r in 1:reps){
   ###
   ### Make likelihood function
   ### 
-  llkf = make_ikfdnm_likelihood(dnm_survival=~1, dnm_recruit=~1, dnm_det=~1, kf_survival_effects=~1, 
+  llkf = make_ikfdnm_likelihood(dnm_survival=~1, dnm_recruit=~1, dnm_det=~1, kf_survival_effects=NULL, 
                                 fixed_list=fixed_list, data=data, N_max=50)
   
   ###
   ### Optimize and obtain estimates and variance-covariance matrix
   ### 
   
-  par_start=c(qlogis(annual_survival_dnm^0.1), 0, log(4), qlogis(0.5))
+  par_start=c(qlogis(annual_survival_dnm^0.1), log(4), qlogis(0.5))
   
-  mle=optim(par_start, llkf, method="BFGS", control=list(REPORT=1, trace=1), hessian=TRUE)
+  mle=optim(par_start, llkf, method="BFGS", hessian=TRUE)
   par_store[r,]=mle$par
   se_store[r,] = sqrt(diag(2*solve(mle$hessian)))
+  cat(r,"\n")
 }
 
 
