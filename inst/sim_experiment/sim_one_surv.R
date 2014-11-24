@@ -3,7 +3,7 @@ require(kfdnm)
 ###
 ### Simulation parameters
 ###
-reps = 10
+reps = 200
 num_groups=20
 num_kf = 3
 num_years = 5 
@@ -59,5 +59,5 @@ for(r in 1:reps){
   se_store[r,] = sqrt(diag(2*solve(mle$hessian)))
   cat(r,"\n")
 }
-
+save(list=ls(), file="sim_one_surv.RData")
 

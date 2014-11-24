@@ -1,4 +1,4 @@
-#require(kfdnm)
+require(kfdnm)
 
 ###
 ### Simulation parameters
@@ -59,5 +59,5 @@ for(r in 1:reps){
   se_store[r,] = sqrt(diag(2*solve(mle$hessian)))
   cat(r,"\n")
 }
-
+save(list=ls(), file="sim_sep_surv.RData")
 
