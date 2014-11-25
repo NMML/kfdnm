@@ -1,1 +1,3 @@
-sim_data_example     Demonstration of fitting an integrated known-fate, dynamic N-mixture model with a simulated data set
+sim_data_example       Demonstration of fitting an integrated known-fate, dynamic N-mixture model with a simulated data set
+sim_data_example_mcmc  Demonstration of fitting an integrated known-fate, dynamic N-mixture model with a simulated data set via MCMC
+
