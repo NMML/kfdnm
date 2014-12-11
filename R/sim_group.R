@@ -17,29 +17,32 @@
 #' 
 sim_group = function(num_kf, num_years, num_surveys, recruit_rate, init_rate, 
                     survival_dnm, survival_kf, perfect_survey_rate, detection){
-  out = matrix(NA, num_years*num_surveys, 10)
-  colnames(out)=c("year","survey","num_release","num_returns","recruit","group_surv","R","N","n","perfect")
-  out[,1]=rep(1:num_years, each=num_surveys)
-  out[,2]=rep(1:num_surveys, num_years)
-  out[,10]=rbinom(num_years*num_surveys, 1, perfect_survey_rate)
-  out[,5]=0
-  out[,7]=0
-  out[1,3]=num_kf
-  out[1,5]=rpois(1,init_rate)
-  out[1,8]=out[1,5]
+  out = data.frame(year=rep(1:num_years, each=num_surveys))
+  out$survey=rep(1:num_surveys, num_years)
+  out$perfect_survey=rbinom(num_years*num_surveys, 1, perfect_survey_rate)
+  out$Y = NA
+  out$Y[1]=num_kf
+  out$R = 0
+  N = rep(NA,num_years*num_surveys) 
+  N[1] = rpois(1,init_rate)
+  S = rep(NA,num_years*num_surveys)
+  G = rep(0,num_years*num_surveys)
   for(r in 2:(num_years*num_surveys)){
-    out[r,4]=rbinom(1, out[r-1,3], survival_kf)
-    out[r,6]=rbinom(1, out[r-1,8], survival_dnm)
-    if(out[r,2]==1) {
-      out[r,5]=rpois(1,recruit_rate)
-      out[r,7] = min(3-out[r,4], out[r,6])
-      out[r,3]=out[r,4] + out[r,7]
-    } else {
-      out[r,3]=out[r,4]
+    out$Y[r]=rbinom(1, out$Y[r-1]+out$R[r-1], survival_kf)
+    S[r]=rbinom(1, N[r-1]-out$R[r-1], survival_dnm)
+    if(out$survey[r]==1) {
+      G[r]=rpois(1,recruit_rate)
     }
-    out[r,8]=out[r,5]+out[r,6]-out[r,7]
+    N[r] = S[r]+ G[r]
+    if(out$survey[r]==1){
+      out$R[r]= min(num_kf-out$Y[r], N[r])
+    }
   }
-  out[,9]=rbinom(n=nrow(out), size=out[,8], prob=detection)
-  out[,9]=ifelse(out[,10]==1, out[,8], out[,9])
-  return(as.data.frame(out))
+  det=rep(detection, num_years*num_surveys)
+  det=ifelse(out$perfect_survey==1, 1, det)
+  out$S=S
+  out$G=G
+  out$N=N
+  out$n = rbinom(num_years*num_surveys, N-out$R, det)
+  return(out)
 }

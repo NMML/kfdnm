@@ -75,7 +75,6 @@ int sample_du(arma::vec ppp){
 Rcpp::List ikfdnm_hmm(
   const Rcpp::IntegerVector& n, 
   const Rcpp::IntegerVector& Y,
-  const Rcpp::IntegerVector& M,
   const Rcpp::IntegerVector& R, 
   const Rcpp::IntegerVector& new_group, 
   const Rcpp::NumericVector& omega_dnm, 
@@ -102,16 +101,16 @@ Rcpp::List ikfdnm_hmm(
         Delta.slice(i) = N_trans_mat(omega_dnm[i], gamma[i], R[i-1], N_max);
         phi.row(i) = phi.row(i-1) * Delta.slice(i) * P_mat;
         ll_dnm += log(arma::sum(phi.row(i)));
-        ll_kf += R::dbinom(Y[i], M[i-1], omega_kf[i], true);
+        ll_kf += R::dbinom(Y[i], Y[i-1]+R[i-1], omega_kf[i], true);
       }
       phi.row(i) = arma::normalise(phi.row(i),1);
     }
-    Rcpp::IntegerVector N(I);
-    Rcpp::IntegerVector S(I);
-    std::fill( S.begin(), S.end(), Rcpp::NumericVector::get_na() ) ;
-    Rcpp::IntegerVector G(I);
-    std::fill(G.begin(), G.end(), Rcpp::NumericVector::get_na() ) ;
     if(back_sample){
+      Rcpp::IntegerVector N(I);
+      Rcpp::IntegerVector S(I);
+      std::fill( S.begin(), S.end(), Rcpp::NumericVector::get_na() ) ;
+      Rcpp::IntegerVector G(I);
+      std::fill(G.begin(), G.end(), Rcpp::NumericVector::get_na() ) ;
       arma::vec prob(N_max+1);
       N[I-1] = sample_du(phi.row(I-1).t());
       for(int j=I-1; j>0; j--){
@@ -122,13 +121,18 @@ Rcpp::List ikfdnm_hmm(
           G[j]=N[j]-S[j];
         }
       }
+      return Rcpp::List::create(
+        Rcpp::Named("n2ll_dnm")=-2*ll_dnm,
+        Rcpp::Named("n2ll_kf")=-2*ll_kf,
+        Rcpp::Named("N")=N,
+        Rcpp::Named("S")=S,
+        Rcpp::Named("G")=G);
+    } else{
+      return Rcpp::List::create(
+        Rcpp::Named("n2ll_dnm")=-2*ll_dnm,
+        Rcpp::Named("n2ll_kf")=-2*ll_kf);
     }   
-    return Rcpp::List::create(
-      Rcpp::Named("n2ll_dnm")=-2*ll_dnm,
-      Rcpp::Named("n2ll_kf")=-2*ll_kf,
-      Rcpp::Named("N")=N,
-      Rcpp::Named("S")=S,
-      Rcpp::Named("G")=G);
+    
   }
   
   

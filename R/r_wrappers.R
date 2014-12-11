@@ -61,10 +61,9 @@ make_ikfdnm_likelihood = function(dnm_survival=~1, dnm_recruit=~1, dnm_det=~1, k
     gamma=ifelse(is.na(fixed_mat[,2]), gamma, fixed_mat[,2])
     p=plogis(Z%*%alpha)
     p=ifelse(is.na(fixed_mat[,3]), p, fixed_mat[,3])
-    out = ikfdnm_hmm(
+    out = kfdnm:::ikfdnm_hmm(
       n=data$n, 
-      Y=data$num_returns,
-      M=data$num_release,
+      Y=data$Y,
       R=data$R, 
       new_group=new_group, 
       omega_dnm=omega_dnm, 
@@ -72,7 +71,7 @@ make_ikfdnm_likelihood = function(dnm_survival=~1, dnm_recruit=~1, dnm_det=~1, k
       gamma=gamma, 
       p=p, 
       N_max=N_max, 
-      back_sample=FALSE)[1:2]
+      back_sample=FALSE)
     return(out[[1]]+out[[2]])
   }
   attr(n2ll,"npar") = np_kf + np_rec+np_det

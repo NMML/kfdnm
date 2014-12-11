@@ -36,7 +36,7 @@ fixed_list = list(survival=rep(NA, nrow(data)),
 ###
 ### Make likelihood function
 ### 
-llkf = make_ikfdnm_likelihood(dnm_survival=~1, dnm_recruit=~1, dnm_det=~1, kf_survival_effects=NULL, 
+n2ll_kfdnm = make_ikfdnm_likelihood(dnm_survival=~1, dnm_recruit=~1, dnm_det=~1, kf_survival_effects=NULL, 
                                   fixed_list=fixed_list, data=data, N_max=50)
 
 ###
@@ -44,8 +44,8 @@ llkf = make_ikfdnm_likelihood(dnm_survival=~1, dnm_recruit=~1, dnm_det=~1, kf_su
 ### 
 
 par_start=c(qlogis(0.9), log(3), qlogis(0.7))
-
-mle=optim(par_start, llkf, method="BFGS", control=list(REPORT=1, trace=1), hessian=TRUE)
+#xxx=n2ll_kfdnm(par_start)
+mle=optim(par_start, n2ll_kfdnm, method="BFGS", control=list(REPORT=1, trace=1), hessian=TRUE)
 par=mle$par
 se = sqrt(diag(2*solve(mle$hessian)))
 

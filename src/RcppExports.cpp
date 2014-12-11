@@ -44,15 +44,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // ikfdnm_hmm
-Rcpp::List ikfdnm_hmm(const Rcpp::IntegerVector& n, const Rcpp::IntegerVector& Y, const Rcpp::IntegerVector& M, const Rcpp::IntegerVector& R, const Rcpp::IntegerVector& new_group, const Rcpp::NumericVector& omega_dnm, const Rcpp::NumericVector& omega_kf, const Rcpp::NumericVector& gamma, const Rcpp::NumericVector& p, const int& N_max, const bool& back_sample);
-RcppExport SEXP kfdnm_ikfdnm_hmm(SEXP nSEXP, SEXP YSEXP, SEXP MSEXP, SEXP RSEXP, SEXP new_groupSEXP, SEXP omega_dnmSEXP, SEXP omega_kfSEXP, SEXP gammaSEXP, SEXP pSEXP, SEXP N_maxSEXP, SEXP back_sampleSEXP) {
+Rcpp::List ikfdnm_hmm(const Rcpp::IntegerVector& n, const Rcpp::IntegerVector& Y, const Rcpp::IntegerVector& R, const Rcpp::IntegerVector& new_group, const Rcpp::NumericVector& omega_dnm, const Rcpp::NumericVector& omega_kf, const Rcpp::NumericVector& gamma, const Rcpp::NumericVector& p, const int& N_max, const bool& back_sample);
+RcppExport SEXP kfdnm_ikfdnm_hmm(SEXP nSEXP, SEXP YSEXP, SEXP RSEXP, SEXP new_groupSEXP, SEXP omega_dnmSEXP, SEXP omega_kfSEXP, SEXP gammaSEXP, SEXP pSEXP, SEXP N_maxSEXP, SEXP back_sampleSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type n(nSEXP );
         Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type Y(YSEXP );
-        Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type M(MSEXP );
         Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type R(RSEXP );
         Rcpp::traits::input_parameter< const Rcpp::IntegerVector& >::type new_group(new_groupSEXP );
         Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type omega_dnm(omega_dnmSEXP );
@@ -61,7 +60,7 @@ BEGIN_RCPP
         Rcpp::traits::input_parameter< const Rcpp::NumericVector& >::type p(pSEXP );
         Rcpp::traits::input_parameter< const int& >::type N_max(N_maxSEXP );
         Rcpp::traits::input_parameter< const bool& >::type back_sample(back_sampleSEXP );
-        Rcpp::List __result = ikfdnm_hmm(n, Y, M, R, new_group, omega_dnm, omega_kf, gamma, p, N_max, back_sample);
+        Rcpp::List __result = ikfdnm_hmm(n, Y, R, new_group, omega_dnm, omega_kf, gamma, p, N_max, back_sample);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

@@ -4,7 +4,7 @@ require(kfdnm)
 ### Simulation parameters
 ###
 reps = 200
-num_groups=20
+num_groups=3
 num_kf = 3
 num_years = 5 
 num_surveys = 10
@@ -23,6 +23,7 @@ se_store=matrix(NA, nrow=reps, 4)
 ###
 ### Begin simulation
 ###
+pb <- txtProgressBar(min = 1, max = reps, style = 3)
 for(r in 1:reps){
   data=NULL
   s_kf=annual_survival_kf^(1/num_surveys)
@@ -45,7 +46,7 @@ for(r in 1:reps){
   ###
   ### Make likelihood function
   ### 
-  llkf = make_ikfdnm_likelihood(dnm_survival=~1, dnm_recruit=~1, dnm_det=~1, kf_survival_effects=~1, 
+  n2ll_kfdnm = make_ikfdnm_likelihood(dnm_survival=~1, dnm_recruit=~1, dnm_det=~1, kf_survival_effects=~1, 
                                 fixed_list=fixed_list, data=data, N_max=50)
   
   ###
@@ -54,10 +55,11 @@ for(r in 1:reps){
   
   par_start=c(qlogis(annual_survival_dnm^0.1), 0, log(4), qlogis(0.5))
   
-  mle=optim(par_start, llkf, method="BFGS", hessian=TRUE)
+  mle=optim(par_start, n2ll_kfdnm, method="BFGS", hessian=TRUE)
   par_store[r,]=mle$par
   se_store[r,] = sqrt(diag(2*solve(mle$hessian)))
-  cat(r,"\n")
+  setTxtProgressBar(pb, r)
 }
+close(pb)
 save(list=ls(), file="sim_sep_surv.RData")
 
