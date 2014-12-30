@@ -20,11 +20,11 @@ sim_group = function(num_kf, num_years, num_surveys, recruit_rate, init_rate,
   out = data.frame(year=rep(1:num_years, each=num_surveys))
   out$survey=rep(1:num_surveys, num_years)
   out$perfect_survey=rbinom(num_years*num_surveys, 1, perfect_survey_rate)
-  out$Y = NA
-  out$Y[1]=num_kf
+  out$Y = 0
   out$R = 0
+  out$R[1]=num_kf
   N = rep(NA,num_years*num_surveys) 
-  N[1] = rpois(1,init_rate)
+  N[1] = rpois(1,init_rate)+num_kf
   S = rep(NA,num_years*num_surveys)
   G = rep(0,num_years*num_surveys)
   for(r in 2:(num_years*num_surveys)){

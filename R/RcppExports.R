@@ -9,7 +9,11 @@ N_trans_mat <- function(omega, gamma, R, N_max) {
     .Call('kfdnm_N_trans_mat', PACKAGE = 'kfdnm', omega, gamma, R, N_max)
 }
 
-ikfdnm_hmm <- function(n, Y, R, new_group, omega_dnm, omega_kf, gamma, p, N_max, back_sample) {
-    .Call('kfdnm_ikfdnm_hmm', PACKAGE = 'kfdnm', n, Y, R, new_group, omega_dnm, omega_kf, gamma, p, N_max, back_sample)
+dnm_hmm <- function(n, R, id, omega_dnm, gamma, p, N_max, back_sample) {
+    .Call('kfdnm_dnm_hmm', PACKAGE = 'kfdnm', n, R, id, omega_dnm, gamma, p, N_max, back_sample)
+}
+
+kf_hmm <- function(Y, omega, id) {
+    .Call('kfdnm_kf_hmm', PACKAGE = 'kfdnm', Y, omega, id)
 }
 

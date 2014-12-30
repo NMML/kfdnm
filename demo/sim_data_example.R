@@ -4,9 +4,8 @@ require(kfdnm)
 ### Create data to mimic wolf pack example
 ###
 
-set.seed(111)
 data=NULL
-num_groups=3
+num_groups=20
 for(i in 1:num_groups){
   data = rbind(data,
               sim_group(
@@ -43,8 +42,10 @@ n2ll_kfdnm = make_ikfdnm_likelihood(dnm_survival=~1, dnm_recruit=~1, dnm_det=~1,
 ### Optimize and obtain estimates and variance-covariance matrix
 ### 
 
-par_start=c(qlogis(0.9), log(3), qlogis(0.7))
-#xxx=n2ll_kfdnm(par_start)
+par_start=c(qlogis(0.95), log(4), qlogis(0.5))
+#par_start=rep(0,3)
+n2ll_kfdnm(par_start)
+
 mle=optim(par_start, n2ll_kfdnm, method="BFGS", control=list(REPORT=1, trace=1), hessian=TRUE)
 par=mle$par
 se = sqrt(diag(2*solve(mle$hessian)))

@@ -3,14 +3,14 @@ require(kfdnm)
 ###
 ### Simulation parameters
 ###
-reps = 200
+reps = 20
 num_groups=3
 num_kf = 3
 num_years = 5 
 num_surveys = 10
 recruit_rate = 4 
 init_rate = 6 
-annual_survival_dnm = 0.8 
+annual_survival_dnm = 0.6 
 annual_survival_kf = 0.8 
 perfect_survey_rate = 0.1 
 detection = 0.5
@@ -53,8 +53,8 @@ for(r in 1:reps){
   ### Optimize and obtain estimates and variance-covariance matrix
   ### 
   
-  par_start=c(qlogis(annual_survival_dnm^0.1), 0, log(4), qlogis(0.5))
-  
+  par_start=c(2.948662, 0.8426851, log(4), qlogis(0.5))
+  n2ll_kfdnm(par_start)
   mle=optim(par_start, n2ll_kfdnm, method="BFGS", hessian=TRUE)
   par_store[r,]=mle$par
   se_store[r,] = sqrt(diag(2*solve(mle$hessian)))

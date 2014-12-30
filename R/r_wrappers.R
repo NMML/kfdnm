@@ -29,50 +29,68 @@
 #' @return A function of the vector \code{par}
 #' @author Devin S. Johnson
 #' @export
-make_ikfdnm_likelihood = function(dnm_survival=~1, dnm_recruit=~1, dnm_det=~1, kf_survival_effects=NULL, 
-                                  fixed_list=NULL, data, N_max){
-  X_dnm = model.matrix(dnm_survival, data)
+make_ikfdnm_likelihood = function(survival=~1, recruit=~1, detection=~1, kf_survival_effects=NULL, 
+                                  fixed_list=NULL, kf_data, dnm_data, N_max, ln_prior=NULL){
+  X_dnm = model.matrix(survival, dnm_data)
+  X_kf = model.matrix(survival, kf_data)
   if(!is.null(kf_survival_effects)){
-    X_kf = cbind(X_dnm,model.matrix(kf_survival_effects, data))
-  } else{
-    X_kf=X_dnm
+    X_kf = cbind(X_kf,model.matrix(kf_survival_effects, kf_data))
   }
-  W = model.matrix(dnm_recruit, data)
-  Z = model.matrix(dnm_det, data)
+  if(!is.null(fixed_list$kf_survival)) {X_kf[!is.na(fixed_list$kf_survival),]=0}
+  if(!is.null(fixed_list$dnm_survival)) {X_dnm[!is.na(fixed_list$dnm_survival),]=0}
+  X_kf = as.matrix(X_kf[,colSums(X_kf)!=0])
+  X_dnm = as.matrix(X_dnm[,colSums(X_dnm)!=0])
+  W = model.matrix(recruit, dnm_data)
+  if(!is.null(fixed_list$recruit)){W[!is.na(fixed_list$recruit),]=0}
+  W = as.matrix(W[,colSums(W)!=0])
+  Z = model.matrix(detection, dnm_data)
+  if(!is.null(fixed_list$detection)){Z[!is.na(fixed_list$detection),]=0}
+  Z = as.matrix(Z[,colSums(Z)!=0])
   np_dnm = ncol(X_dnm)
   np_kf = ncol(X_kf)
   np_rec = ncol(W)
   np_det = ncol(Z)
-  new_group = as.integer(c(1,as.numeric(diff(as.numeric(data$group))!=0)))
-  fixed_mat = matrix(NA, nrow=nrow(data), ncol=3)
-  if(!is.null(fixed_list$survial)) fixed_mat[,1]=fixed_list$survival
-  if(!is.null(fixed_list$recruit)) fixed_mat[,2]=fixed_list$recruit
-  if(!is.null(fixed_list$det)) fixed_mat[,3]=fixed_list$det
   n2ll = function(par){
     beta_kf=par[1:np_kf]
     beta_dnm = par[1:np_dnm]
     rho=par[(np_kf+1):(np_kf+np_rec)]
     alpha=par[(np_kf+np_rec+1):(np_kf+np_rec+np_det)]
     omega_dnm = plogis(X_dnm%*%beta_dnm)
-    omega_dnm=ifelse(is.na(fixed_mat[,1]), omega_dnm, fixed_mat[,1])
+    if(!is.null(fixed_list$dnm_survival)){
+      omega_dnm=ifelse(is.na(fixed_list$dnm_survival), omega_dnm, fixed_list$dnm_survival)
+    }
     omega_kf = plogis(X_kf%*%beta_kf)
-    omega_kf=ifelse(is.na(fixed_mat[,1]), omega_kf, fixed_mat[,1])
+    if(!is.null(fixed_list$kf_survival)){
+      omega_kf=ifelse(is.na(fixed_list$kf_survival), omega_kf, fixed_list$kf_survival)
+    }
     gamma = exp(W%*%rho)
-    gamma=ifelse(is.na(fixed_mat[,2]), gamma, fixed_mat[,2])
+    if(!is.null(fixed_list$recruit)){
+      gamma=ifelse(is.na(fixed_list$recruit), gamma, fixed_list$recruit)
+    }
     p=plogis(Z%*%alpha)
-    p=ifelse(is.na(fixed_mat[,3]), p, fixed_mat[,3])
-    out = kfdnm:::ikfdnm_hmm(
-      n=data$n, 
-      Y=data$Y,
-      R=data$R, 
-      new_group=new_group, 
+    if(!is.null(fixed_list$detection)){
+      p=ifelse(is.na(fixed_list$detection), p, fixed_list$detection)
+    }
+    R=ifelse(is.na(dnm_data$R), 0, dnm_data$R)
+    ll_dnm = kfdnm:::dnm_hmm(
+      n=dnm_data$n, 
+      R=R,
+      id=as.numeric(dnm_data$group), 
       omega_dnm=omega_dnm, 
-      omega_kf=omega_kf,
-      gamma=gamma, 
+      gamma=gamma,
       p=p, 
       N_max=N_max, 
-      back_sample=FALSE)
-    return(out[[1]]+out[[2]])
+      back_sample=FALSE)$logLik
+    ll_kf = kfdnm:::kf_hmm(
+      Y = kf_data$CH,
+      omega=omega_kf,
+      id=as.numeric(kf_data$id))$logLik
+    if(!is.null(ln_prior)){
+      ln_p = ln_prior(par)
+    } else {
+      ln_p = 0
+    }
+    return(-2*(ll_dnm+ll_kf+ln_p))
   }
   attr(n2ll,"npar") = np_kf + np_rec+np_det
   return(n2ll)

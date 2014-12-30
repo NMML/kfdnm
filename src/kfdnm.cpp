@@ -72,17 +72,16 @@ int sample_du(arma::vec ppp){
 }
 
 // [[Rcpp::export]]
-Rcpp::List ikfdnm_hmm(
+Rcpp::List dnm_hmm(
   const Rcpp::IntegerVector& n, 
-  const Rcpp::IntegerVector& Y,
   const Rcpp::IntegerVector& R, 
-  const Rcpp::IntegerVector& new_group, 
-  const Rcpp::NumericVector& omega_dnm, 
-  const Rcpp::NumericVector& omega_kf, 
+  const Rcpp::IntegerVector& id, 
+  const Rcpp::NumericVector& omega_dnm,  
   const Rcpp::NumericVector& gamma, 
   const Rcpp::NumericVector& p, 
   const int& N_max, 
-  const bool& back_sample){
+  const bool& back_sample
+  ){
     int I = n.size();
     arma::mat phi(I, N_max+1, fill::zeros);
     arma::rowvec eta(N_max+1, fill::ones); 
@@ -90,18 +89,21 @@ Rcpp::List ikfdnm_hmm(
     eta = arma::normalise(eta, 1);
     arma::cube Delta(N_max+1, N_max+1, I, fill::zeros);
     double ll_dnm = 0;
-    double ll_kf = 0;
+    Rcpp::LogicalVector miss_n = Rcpp::is_na(n);
     arma::mat P_mat(N_max+1, N_max+1);
     for(int i = 0; i<I; i++){
-      P_mat = make_P_mat(n[i], p[i], R[i], N_max);
-      if(new_group[i]==1){
+      if(miss_n[i]){
+        P_mat.eye();
+      } else{
+        P_mat = make_P_mat(n[i], p[i], R[i], N_max);
+      }
+      if( i==0 || id[i]!=id[i-1] ){
         phi.row(i) = eta * P_mat;
         ll_dnm += log(arma::sum(phi.row(i)));
       } else{
-        Delta.slice(i) = N_trans_mat(omega_dnm[i], gamma[i], R[i-1], N_max);
+        Delta.slice(i) = N_trans_mat(omega_dnm[i-1], gamma[i], R[i-1], N_max);
         phi.row(i) = phi.row(i-1) * Delta.slice(i) * P_mat;
         ll_dnm += log(arma::sum(phi.row(i)));
-        ll_kf += R::dbinom(Y[i], Y[i-1]+R[i-1], omega_kf[i], true);
       }
       phi.row(i) = arma::normalise(phi.row(i),1);
     }
@@ -116,24 +118,58 @@ Rcpp::List ikfdnm_hmm(
       for(int j=I-1; j>0; j--){
         prob = phi.row(j-1).t() % Delta.slice(j).col(N[j]);
         N[j-1] = sample_du(prob) - 1;
-        if(new_group[j]!=1){
-          S[j]=sample_du(make_S_prob_vec(N[j-1], R[j-1], N[j], omega_dnm[j], gamma[j]))-1;
+        if(j>0 && id[j]!=id[j-1]){
+          S[j]=sample_du(make_S_prob_vec(N[j-1], R[j-1], N[j], omega_dnm[j-1], gamma[j]))-1;
           G[j]=N[j]-S[j];
         }
       }
       return Rcpp::List::create(
-        Rcpp::Named("n2ll_dnm")=-2*ll_dnm,
-        Rcpp::Named("n2ll_kf")=-2*ll_kf,
+        Rcpp::Named("logLik")=ll_dnm,
         Rcpp::Named("N")=N,
         Rcpp::Named("S")=S,
         Rcpp::Named("G")=G);
     } else{
       return Rcpp::List::create(
-        Rcpp::Named("n2ll_dnm")=-2*ll_dnm,
-        Rcpp::Named("n2ll_kf")=-2*ll_kf);
-    }   
-    
+        Rcpp::Named("logLik")=ll_dnm
+        );
+    }    
   }
   
-  
-  
+  // [[Rcpp::export]]
+  Rcpp::List kf_hmm(
+    const Rcpp::IntegerVector& Y,
+    const Rcpp::NumericVector& omega,
+    const Rcpp::IntegerVector& id)
+    {
+      int I = Y.size();
+      double ll = 0;
+      //Rcpp::NumericVector ll(I);
+      arma::mat phi(I, 2, fill::zeros);
+      phi(0,1)=1;
+      Rcpp::LogicalVector miss_Y = Rcpp::is_na(Y);
+      arma::mat P_mat(2, 2, fill::zeros);
+      arma::mat Delta(2,2,fill::eye);
+      for(int i=1; i<I; i++){
+        if(id[i]!=id[i-1]){
+          phi(i,1) = 1;
+        } else{
+          if(miss_Y[i]){
+            P_mat.eye();
+          } else {
+            P_mat.zeros();
+            P_mat(Y[i],Y[i]) = 1;
+          }
+          Delta(1,0) = 1-omega[i-1];
+          Delta(1,1) = omega[i-1];
+          phi.row(i) = phi.row(i-1) * Delta * P_mat;
+          ll += log(arma::sum(phi.row(i)));
+          //ll[i] = log(arma::sum(phi.row(i)));
+          phi.row(i) = arma::normalise(phi.row(i),1);
+        } // end of missing data ifelse
+      } // end of loop
+      return Rcpp::List::create(
+        Rcpp::Named("logLik")=ll
+        );
+    }
+    
+    
