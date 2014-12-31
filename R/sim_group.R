@@ -15,28 +15,26 @@
 #' 
 #' @export
 #' 
-sim_group = function(num_kf, num_years, num_surveys, recruit_rate, init_rate, 
+sim_data = function(num_kf, num_years, num_surveys, recruit_rate, init_rate, 
                     survival_dnm, survival_kf, perfect_survey_rate, detection){
   out = data.frame(year=rep(1:num_years, each=num_surveys))
   out$survey=rep(1:num_surveys, num_years)
   out$perfect_survey=rbinom(num_years*num_surveys, 1, perfect_survey_rate)
   out$Y = 0
   out$R = 0
-  out$R[1]=num_kf
   N = rep(NA,num_years*num_surveys) 
   N[1] = rpois(1,init_rate)+num_kf
   S = rep(NA,num_years*num_surveys)
   G = rep(0,num_years*num_surveys)
   for(r in 2:(num_years*num_surveys)){
-    out$Y[r]=rbinom(1, out$Y[r-1]+out$R[r-1], survival_kf)
     S[r]=rbinom(1, N[r-1]-out$R[r-1], survival_dnm)
     if(out$survey[r]==1) {
       G[r]=rpois(1,recruit_rate)
     }
     N[r] = S[r]+ G[r]
-    if(out$survey[r]==1){
-      out$R[r]= min(num_kf-out$Y[r], N[r])
-    }
+#     if(out$survey[r]==1){
+#       out$R[r]= min(num_kf-out$Y[r], N[r])
+#     }
   }
   det=rep(detection, num_years*num_surveys)
   det=ifelse(out$perfect_survey==1, 1, det)
@@ -44,5 +42,19 @@ sim_group = function(num_kf, num_years, num_surveys, recruit_rate, init_rate,
   out$G=G
   out$N=N
   out$n = rbinom(num_years*num_surveys, N-out$R, det)
-  return(out)
+
+  out_kf=NULL
+  for(i in 1:num_years){
+    Y = matrix(nrow=num_surveys, ncol=num_kf)
+    Y[1,] = 1
+    for(j in 2:num_surveys){
+      Y[j,] = rbinom(n=num_kf, size=Y[j-1,], prob=survival_kf)
+    }
+    CH=as.vector(Y)
+    id = rep(paste(i, 1:num_kf, sep="-"), each=num_surveys)
+    survey=rep(1:num_surveys, num_kf)
+    out_kf = rbind(out_kf, data.frame(id, year=i, survey, CH))
+  }
+
+  return(list(dnm_data=out, kf_data=out_kf))
 }
