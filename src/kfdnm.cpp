@@ -46,10 +46,13 @@ arma::mat make_P_mat(const int& n, const double& p, const int& R, const int& N_m
   return P_mat;
 }
 
-arma::vec make_S_prob_vec(const int& from_N, const int& R, const int& to_N, const double& omega, const double& gamma){
-  Rcpp::IntegerVector S(from_N-R+1);
-  for(int i=0; i<=from_N-R; i++){S[i]=i;}
-  arma::vec prob(dbinom(S, from_N-R, omega, false) * dpois(to_N-S, gamma, false));
+arma::vec make_S_prob_vec(const int& from_N, const int& R, const int& to_N, const double& omega, 
+const double& gamma, const int N_max){
+  int m = std::min(from_N-R, to_N);
+  arma::vec prob(m+1, fill::ones);
+  for(int i=0; i<=m; i++){
+    prob(i) = R::dbinom(i, from_N-R, omega, false) * R::dpois(to_N-i, gamma, false);
+    }
   return(prob);
 }
 
@@ -83,6 +86,7 @@ Rcpp::List dnm_hmm(
   const bool& back_sample
   ){
     int I = n.size();
+    arma::mat S_probs(I, N_max+1, fill::zeros);
     arma::mat phi(I, N_max+1, fill::zeros);
     arma::rowvec eta(N_max+1, fill::ones); 
     for(int j=1; j<=N_max; j++){eta(j) = 1/(1.0*j);}
@@ -116,10 +120,14 @@ Rcpp::List dnm_hmm(
       arma::vec prob(N_max+1);
       N[I-1] = sample_du(phi.row(I-1).t());
       for(int j=I-1; j>0; j--){
-        prob = phi.row(j-1).t() % Delta.slice(j).col(N[j]);
+        if(id[j-1]!=id[j]){
+          prob = phi.row(j-1).t();
+        } else{
+          prob = phi.row(j-1).t() % Delta.slice(j).col(N[j]);
+        }
         N[j-1] = sample_du(prob) - 1;
-        if(j>0 && id[j]!=id[j-1]){
-          S[j]=sample_du(make_S_prob_vec(N[j-1], R[j-1], N[j], omega_dnm[j-1], gamma[j]))-1;
+        if(j>0 && id[j]==id[j-1]){
+          S[j]=sample_du(make_S_prob_vec(N[j-1], R[j-1], N[j], omega_dnm[j-1], gamma[j], N_max))-1;
           G[j]=N[j]-S[j];
         }
       }
