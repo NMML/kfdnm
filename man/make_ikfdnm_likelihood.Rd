@@ -20,9 +20,14 @@ make_ikfdnm_likelihood(survival = ~1, recruit = ~1, detection = ~1,
 \item{fixed_list}{A list object with named entries: \code{survival}, \code{recruit}, and \code{det}. Each of the entries is a vector of length
 \code{nrow(data)}.}
 
+\item{kf_data}{A data.frame object containing the known fate data for analysis.}
+
+\item{dnm_data}{A data.frame comtaining the dynamic N-mixture data for analysis.}
+
 \item{N_max}{An integer giving the maximum abundance of the N-mixture population.}
 
-\item{data}{A data.frame object containing the data for analysis.}
+\item{ln_prior}{A function of the parameter vector, \code{par}, that returns the log-prior density
+evaluated at \code{par}.}
 }
 \value{
 A function of the vector \code{par}

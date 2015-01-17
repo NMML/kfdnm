@@ -10,8 +10,11 @@
 #' \code{dnm_survival}. 
 #' @param fixed_list A list object with named entries: \code{survival}, \code{recruit}, and \code{det}. Each of the entries is a vector of length 
 #' \code{nrow(data)}.
-#' @param data A data.frame object containing the data for analysis.
+#' @param kf_data A data.frame object containing the known fate data for analysis.
+#' @param dnm_data A data.frame comtaining the dynamic N-mixture data for analysis.
 #' @param N_max An integer giving the maximum abundance of the N-mixture population.
+#' @param ln_prior A function of the parameter vector, \code{par}, that returns the log-prior density
+#' evaluated at \code{par}.
 #' 
 #' @details The data provided in the \code{data} agument contains rows for each survey within each group. The rows must be forst ordered by group, 
 #' then time within group. The data must contain the following \code{colnames}: 
@@ -106,8 +109,10 @@ make_ikfdnm_likelihood = function(survival=~1, recruit=~1, detection=~1, kf_surv
 #' \code{dnm_survival}. 
 #' @param fixed_list A list object with named entries: \code{survival}, \code{recruit}, and \code{det}. Each of the entries is a vector of length 
 #' \code{nrow(data)}.
-#' @param data A data.frame object containing the data for analysis.
+#' @param kf_data A data.frame object containing the known fate data for analysis.
+#' @param dnm_data A data.frame comtaining the dynamic N-mixture data for analysis.
 #' @param N_max An integer giving the maximum abundance of the N-mixture population.
+#' @param ln_prior A function of the parameter vector, \code{par}, that returns the log-prior density
 #' 
 #' @details The data provided in the \code{data} agument contains rows for each survey within each group. The rows must be forst ordered by group, 
 #' then time within group. The data must contain the following \code{colnames}: 
